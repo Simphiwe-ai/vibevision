@@ -1,0 +1,295 @@
+/* ==============================
+   VibeVision Global Styles
+   ============================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f9ff;
+  color: #0b1f3a;
+}
+
+/* ==============================
+   Homepage
+   ============================== */
+
+main {
+  min-height: 100vh;
+}
+
+header {
+  background: #0b1f3a;
+  color: white;
+  padding: 20px 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header h1 {
+  font-size: 28px;
+}
+
+nav {
+  display: flex;
+  gap: 25px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+nav a:hover {
+  color: #4db8ff;
+}
+
+/* Homepage section only */
+
+main > section {
+  min-height: 500px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  padding: 40px;
+}
+
+main > section h2 {
+  font-size: 52px;
+  margin-bottom: 20px;
+}
+
+main > section p {
+  font-size: 20px;
+  max-width: 650px;
+  margin-bottom: 30px;
+  color: #475569;
+}
+
+/* ==============================
+   Restaurants Page
+   ============================== */
+
+.restaurants-page {
+  min-height: 100vh;
+  background: #f4f9ff;
+}
+
+/* Header */
+
+.restaurants-header {
+  text-align: center;
+  padding: 70px 20px 40px;
+}
+
+.restaurants-header h1 {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: #0b1f3a;
+}
+
+.restaurants-header p {
+  max-width: 700px;
+  margin: 0 auto 30px;
+  color: #64748b;
+  font-size: 18px;
+}
+
+/* Search */
+
+.restaurant-search {
+  width: 100%;
+  max-width: 600px;
+  padding: 16px 20px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+
+  font-size: 16px;
+  outline: none;
+}
+
+.restaurant-search:focus {
+  border-color: #0b1f3a;
+}
+
+/* Restaurant Grid */
+
+.restaurant-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  padding: 30px 30px 80px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+
+  align-items: start;
+}
+
+/* Restaurant Card */
+
+.restaurant-card {
+  background: white;
+
+  border-radius: 14px;
+  overflow: hidden;
+
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+
+  transition: transform 0.2s ease;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Restaurant Image */
+
+.restaurant-image {
+  height: 180px;
+  background: #dbeafe;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.restaurant-placeholder {
+  font-size: 22px;
+  font-weight: bold;
+  color: #0b1f3a;
+}
+
+/* Card Content */
+
+.restaurant-content {
+  padding: 25px;
+}
+
+.restaurant-content h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #0b1f3a;
+}
+
+.restaurant-type {
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.restaurant-location {
+  color: #475569;
+  margin-bottom: 20px;
+}
+
+/* Status */
+
+.restaurant-status {
+  margin-bottom: 20px;
+}
+
+.live-status {
+  color: #15803d;
+  font-weight: bold;
+}
+
+.offline-status {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Buttons */
+
+.restaurant-actions {
+  display: flex;
+  width: 100%;
+}
+
+.watch-button,
+.details-button {
+  display: inline-block;
+
+  width: 100%;
+
+  padding: 13px 20px;
+
+  text-align: center;
+  text-decoration: none;
+
+  border-radius: 8px;
+
+  font-weight: bold;
+}
+
+.watch-button {
+  background: #0b1f3a;
+  color: white;
+}
+
+.watch-button:hover {
+  background: #123c6b;
+}
+
+.details-button {
+  background: #e2e8f0;
+  color: #0b1f3a;
+}
+
+.details-button:hover {
+  background: #cbd5e1;
+}
+
+/* No search results */
+
+.no-results {
+  grid-column: 1 / -1;
+
+  text-align: center;
+
+  font-size: 20px;
+
+  color: #64748b;
+}
+
+/* ==============================
+   Responsive Design
+   ============================== */
+
+@media (max-width: 900px) {
+  .restaurant-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .restaurants-header h1 {
+    font-size: 36px;
+  }
+
+  .restaurant-grid {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  header {
+    padding: 20px;
+  }
+}
