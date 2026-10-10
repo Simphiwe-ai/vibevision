@@ -8,9 +8,8 @@
     "esModuleInterop": true,   // allow default imports from CommonJS
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-"types": ["node"]
+    "types": ["node"]
   },
   "include": ["src"],          // only compile files in src/
-  "exclude": ["node_modules"]  // ignore dependencies
+  "exclude": ["node_modules", "src/**/*.test.ts"]  // ignore dependencies and test files
 }
-
