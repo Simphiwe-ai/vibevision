@@ -1,4 +1,3 @@
-
 import express, {
   Request,
   Response,
@@ -84,6 +83,8 @@ app.get("/api/test", (_req: Request, res: Response) => {
   res.json({ message: "VibeVision API test successful!" });
 });
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // Registration: public users must not choose their own account role.
 app.post("/users", async (req: Request, res: Response) => {
   const { fullName, email, password } = req.body ?? {};
@@ -92,7 +93,7 @@ app.post("/users", async (req: Request, res: Response) => {
     typeof fullName !== "string" ||
     !fullName.trim() ||
     typeof email !== "string" ||
-    !email.trim() ||
+    !EMAIL_PATTERN.test(email.trim()) ||
     typeof password !== "string" ||
     password.length < 8
   ) {

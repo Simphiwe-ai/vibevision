@@ -247,7 +247,19 @@ describe("POST /users (registration)", () => {
     expect(res.status).toBe(500);
   });
 
-  it.todo("rejects malformed email addresses (the code only checks for non-empty)");
+  it.each([
+    "not-an-email",
+    "missing-at.example.com",
+    "two@@example.com",
+    "no-dot@example",
+    "spaces in@example.com",
+  ])("returns 400 for the malformed email %s", async (email) => {
+    const res = await request(app).post("/users").send({ ...valid, email });
+
+    expect(res.status).toBe(400);
+    expect(prismaMock.user.create).not.toHaveBeenCalled();
+  });
+
   it.todo("returns 409 when two signups race and hit the unique constraint");
 });
 
