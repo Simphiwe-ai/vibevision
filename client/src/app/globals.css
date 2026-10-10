@@ -1,60 +1,102 @@
-/* ==============================
-   VibeVision Global Styles
-   ============================== */
+@import "tailwindcss";
+
+:root {
+  --background: #07152d;
+  --foreground: #ffffff;
+}
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
 }
 
 body {
+  background: #07152d;
+  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  background: #f4f9ff;
-  color: #0b1f3a;
 }
 
-/* ==============================
-   Homepage
-   ============================== */
-
-main {
+/* VibeVision background */
+.vibevision-page {
+  position: relative;
   min-height: 100vh;
+  overflow: hidden;
 }
 
-header {
-  background: #0b1f3a;
-  color: white;
-  padding: 20px 60px;
+/* Background image */
+.vibevision-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  background-image: url("/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  opacity: 0.3;
+  z-index: -2;
+}
+
+/* Dark overlay */
+.vibevision-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  background: rgba(3, 12, 30, 0.45);
+
+  z-index: -1;
+}
+
+/* Navigation */
+.navbar {
+  width: 100%;
+  padding: 20px 50px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  background: rgba(3, 15, 35, 0.85);
+  backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-header h1 {
+.logo {
   font-size: 28px;
+  font-weight: 800;
+  color: white;
+  text-decoration: none;
 }
 
-nav {
+.nav-links {
   display: flex;
+  align-items: center;
   gap: 25px;
 }
 
-nav a {
+.nav-links a {
   color: white;
   text-decoration: none;
-  font-size: 16px;
+  font-weight: 500;
+  transition: 0.2s;
 }
 
-nav a:hover {
-  color: #4db8ff;
+.nav-links a:hover {
+  color: #60a5fa;
 }
 
-/* Homepage section only */
-
-main > section {
-  min-height: 500px;
+/* Hero */
+.hero {
+  min-height: calc(100vh - 80px);
 
   display: flex;
   flex-direction: column;
@@ -62,400 +104,126 @@ main > section {
   justify-content: center;
 
   text-align: center;
-  padding: 40px;
-}
-
-main > section h2 {
-  font-size: 52px;
-  margin-bottom: 20px;
-}
-
-main > section p {
-  font-size: 20px;
-  max-width: 650px;
-  margin-bottom: 30px;
-  color: #475569;
-}
-
-/* ==============================
-   Restaurants Page
-   ============================== */
-
-.restaurants-page {
-  min-height: 100vh;
-  background: #f4f9ff;
-}
-
-/* Header */
-
-.restaurants-header {
-  text-align: center;
-  padding: 70px 20px 40px;
-}
-
-.restaurants-header h1 {
-  font-size: 48px;
-  margin-bottom: 15px;
-  color: #0b1f3a;
-}
-
-.restaurants-header p {
-  max-width: 700px;
-  margin: 0 auto 30px;
-  color: #64748b;
-  font-size: 18px;
-}
-
-/* Search */
-
-.restaurant-search {
-  width: 100%;
-  max-width: 600px;
-  padding: 16px 20px;
-
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-
-  font-size: 16px;
-  outline: none;
-}
-
-.restaurant-search:focus {
-  border-color: #0b1f3a;
-}
-
-/* Restaurant Grid */
-
-.restaurant-grid {
-  max-width: 1200px;
-  margin: 0 auto;
-
-  padding: 30px 30px 80px;
-
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
-
-  align-items: start;
-}
-
-/* Restaurant Card */
-
-.restaurant-card {
-  background: white;
-
-  border-radius: 14px;
-  overflow: hidden;
-
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-
-  transition: transform 0.2s ease;
-}
-
-.restaurant-card:hover {
-  transform: translateY(-5px);
-}
-
-/* Restaurant Image */
-
-.restaurant-image {
-  height: 180px;
-  background: #dbeafe;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.restaurant-placeholder {
-  font-size: 22px;
-  font-weight: bold;
-  color: #0b1f3a;
-}
-
-/* Card Content */
-
-.restaurant-content {
-  padding: 25px;
-}
-
-.restaurant-content h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-  color: #0b1f3a;
-}
-
-.restaurant-type {
-  color: #64748b;
-  margin-bottom: 10px;
-}
-
-.restaurant-location {
-  color: #475569;
-  margin-bottom: 20px;
-}
-
-/* Status */
-
-.restaurant-status {
-  margin-bottom: 20px;
-}
-
-.live-status {
-  color: #15803d;
-  font-weight: bold;
-}
-
-.offline-status {
-  color: #dc2626;
-  font-weight: bold;
-}
-
-/* Buttons */
-
-.restaurant-actions {
-  display: flex;
-  width: 100%;
-}
-
-.watch-button,
-.details-button {
-  display: inline-block;
-
-  width: 100%;
-
-  padding: 13px 20px;
-
-  text-align: center;
-  text-decoration: none;
-
-  border-radius: 8px;
-
-  font-weight: bold;
-}
-
-.watch-button {
-  background: #0b1f3a;
-  color: white;
-}
-
-.watch-button:hover {
-  background: #123c6b;
-}
-
-.details-button {
-  background: #e2e8f0;
-  color: #0b1f3a;
-}
-
-.details-button:hover {
-  background: #cbd5e1;
-}
-
-/* No search results */
-
-.no-results {
-  grid-column: 1 / -1;
-
-  text-align: center;
-
-  font-size: 20px;
-
-  color: #64748b;
-}
-
-/* ==============================
-   Responsive Design
-   ============================== */
-
-@media (max-width: 900px) {
-  .restaurant-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .restaurants-header h1 {
-    font-size: 36px;
-  }
-
-  .restaurant-grid {
-    grid-template-columns: 1fr;
-    padding: 20px;
-  }
-
-  nav {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  header {
-    padding: 20px;
-  }
-}
-/* ==============================
-   Register Page
-   ============================== */
-
-.register-page {
-  min-height: 100vh;
-  background: #f4f9ff;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
 
   padding: 60px 20px;
 }
 
-.register-container {
-  width: 100%;
-  max-width: 600px;
+.hero h1 {
+  margin: 0;
 
-  background: white;
+  font-size: clamp(45px, 7vw, 80px);
+  font-weight: 800;
+  letter-spacing: -2px;
 
-  padding: 40px;
-
-  border-radius: 16px;
-
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-}
-
-.register-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.register-header h1 {
-  font-size: 32px;
-  color: #0b1f3a;
-  margin-bottom: 12px;
-}
-
-.register-header p {
-  color: #64748b;
-  font-size: 16px;
-  line-height: 1.5;
-}
-
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #0b1f3a;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-
-  padding: 14px 15px;
-
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-
-  font-size: 16px;
-
-  background: white;
-
-  outline: none;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #0b1f3a;
-  box-shadow: 0 0 0 2px rgba(11, 31, 58, 0.1);
-}
-
-.form-group small {
-  color: #64748b;
-  font-size: 13px;
-}
-
-.terms-group {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-
-  font-size: 14px;
-  color: #475569;
-}
-
-.terms-group input {
-  margin-top: 3px;
-}
-
-.register-message {
-  padding: 12px;
-
-  border-radius: 8px;
-
-  background: #eff6ff;
-
-  color: #0b1f3a;
-
-  font-size: 14px;
-
-  text-align: center;
-}
-
-.register-button {
-  width: 100%;
-
-  padding: 15px;
-
-  border: none;
-  border-radius: 8px;
-
-  background: #0b1f3a;
   color: white;
 
-  font-size: 17px;
-  font-weight: bold;
-
-  cursor: pointer;
-
-  transition: background 0.2s ease;
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
 }
 
-.register-button:hover {
-  background: #123c6b;
+.hero h1 span {
+  color: #60a5fa;
 }
 
-.login-link {
-  text-align: center;
+.hero p {
+  max-width: 700px;
 
-  color: #64748b;
+  margin: 25px auto 0;
+
+  font-size: 20px;
+  line-height: 1.6;
+
+  color: #dbeafe;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+
+  margin-top: 35px;
+
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 190px;
+  height: 52px;
+
+  padding: 0 28px;
+
+  border-radius: 10px;
+
+  text-decoration: none;
+
+  font-weight: 700;
+
+  transition: 0.2s;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+
+  color: white;
+
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.trial-text {
+  margin-top: 20px;
 
   font-size: 14px;
+
+  color: #bfdbfe;
 }
 
-.login-link a {
-  color: #0b1f3a;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.login-link a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 600px) {
-  .register-container {
-    padding: 25px;
+/* Mobile */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 18px 20px;
   }
 
-  .register-header h1 {
-    font-size: 26px;
+  .nav-links {
+    gap: 12px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+  }
+
+  .hero {
+    padding: 40px 20px;
+  }
+
+  .hero h1 {
+    font-size: 48px;
+  }
+
+  .hero p {
+    font-size: 17px;
   }
 }
