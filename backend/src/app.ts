@@ -7,6 +7,7 @@ import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "./db";
+import venuesRouter from "./venues";
 
 const app = express();
 
@@ -468,5 +469,7 @@ app.delete(
     }
   },
 );
+
+app.use("/venues", venuesRouter);
 
 export default app;
