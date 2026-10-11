@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "./db";
 import venuesRouter from "./venues";
+import adminVenuesRouter from "./adminVenues";
 
 const app = express();
 
@@ -471,5 +472,6 @@ app.delete(
 );
 
 app.use("/venues", venuesRouter);
+app.use("/admin/venues", authenticateToken, requireAdmin, adminVenuesRouter);
 
 export default app;
