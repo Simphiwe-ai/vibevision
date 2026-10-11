@@ -30,3 +30,20 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
 }
+
+model Venue {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String
+  city        String
+  address     String?
+  description String?
+  imageUrl    String?
+  streamUrl   String?
+  isLive      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([city])
+  @@index([type])
+}
