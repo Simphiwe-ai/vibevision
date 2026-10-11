@@ -1,115 +1,148 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
+import SiteHeader from "../../components/SiteHeader";
+import { CITIES, VENUE_TYPES, fetchVenues } from "../../lib/api";
 
-const venues = [
-  {
-    id: 1,
-    name: "Vibe Lounge",
-    location: "Johannesburg",
-    type: "Restaurant & Pub",
-    status: "LIVE",
-  },
-  {
-    id: 2,
-    name: "The Blue Pub",
-    location: "Pretoria",
-    type: "Pub",
-    status: "OFFLINE",
-  },
-  {
-    id: 3,
-    name: "Sunset Restaurant",
-    location: "Soweto",
-    type: "Restaurant",
-    status: "LIVE",
-  },
-];
+type RawParams = { [key: string]: string | string[] | undefined };
+type Filters = { location?: string; type?: string; q?: string };
 
-export default function RestaurantsPage() {
-  const [search, setSearch] = useState("");
+function first(value: string | string[] | undefined): string | undefined {
+  const text = Array.isArray(value) ? value[0] : value;
+  return text && text.trim() ? text.trim() : undefined;
+}
 
-  const filteredVenues = venues.filter((venue) =>
-    venue.name.toLowerCase().includes(search.toLowerCase())
-  );
+function href(filters: Filters) {
+  const params = new URLSearchParams();
+  if (filters.location) params.set("location", filters.location);
+  if (filters.type) params.set("type", filters.type);
+  if (filters.q) params.set("q", filters.q);
+  const query = params.toString();
+  return query ? `/restaurants?${query}` : "/restaurants";
+}
+
+export default async function RestaurantsPage({
+  searchParams,
+}: {
+  searchParams: Promise<RawParams>;
+}) {
+  const raw = await searchParams;
+  const filters: Filters = {
+    location: first(raw.location),
+    type: first(raw.type),
+    q: first(raw.q),
+  };
+
+  const venues = await fetchVenues({
+    city: filters.location,
+    type: filters.type,
+    q: filters.q,
+  });
 
   return (
-    <main className="restaurants-page">
-      <section className="restaurants-header">
-        <h1>Restaurants & Pubs</h1>
+    <main className="vibevision-page">
+      <SiteHeader />
 
-        <p>
-          Discover restaurants and pubs and watch their live atmosphere on
-          VibeVision.
-        </p>
+      <section className="page-section">
+        <div className="section-heading">
+          <p className="eyebrow">DISCOVER THE VIBE</p>
+          <h1 className="page-title">Restaurants, pubs &amp; nightlife</h1>
+          <p>Pick a city, filter by type, or search by name.</p>
+        </div>
 
-        <input
-          type="text"
-          placeholder="Search restaurants..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="restaurant-search"
-        />
-      </section>
+        <form action="/restaurants" className="search-form">
+          {filters.location && (
+            <input type="hidden" name="location" value={filters.location} />
+          )}
+          {filters.type && (
+            <input type="hidden" name="type" value={filters.type} />
+          )}
+          <input
+            type="search"
+            name="q"
+            defaultValue={filters.q ?? ""}
+            placeholder="Search venues..."
+            aria-label="Search venues"
+          />
+          <button type="submit" className="button button-small">
+            Search
+          </button>
+        </form>
 
-      <section className="restaurant-grid">
-        {filteredVenues.map((venue) => (
-          <article className="restaurant-card" key={venue.id}>
-            <div className="restaurant-image">
-              <span className="restaurant-placeholder">
-                {venue.name}
-              </span>
-            </div>
+        <div className="filter-row">
+          <Link
+            href={href({ ...filters, location: undefined })}
+            className={`chip${!filters.location ? " chip-active" : ""}`}
+          >
+            All cities
+          </Link>
+          {CITIES.map((city) => (
+            <Link
+              key={city}
+              href={href({ ...filters, location: city })}
+              className={`chip${
+                filters.location?.toLowerCase() === city.toLowerCase()
+                  ? " chip-active"
+                  : ""
+              }`}
+            >
+              {city}
+            </Link>
+          ))}
+        </div>
 
-            <div className="restaurant-content">
-              <h2>{venue.name}</h2>
+        <div className="filter-row">
+          <Link
+            href={href({ ...filters, type: undefined })}
+            className={`chip${!filters.type ? " chip-active" : ""}`}
+          >
+            All types
+          </Link>
+          {VENUE_TYPES.map((type) => (
+            <Link
+              key={type.value}
+              href={href({ ...filters, type: type.value })}
+              className={`chip${
+                filters.type === type.value ? " chip-active" : ""
+              }`}
+            >
+              {type.label}
+            </Link>
+          ))}
+        </div>
 
-              <p className="restaurant-type">
-                {venue.type}
-              </p>
-
-              <p className="restaurant-location">
-                📍 {venue.location}
-              </p>
-
-              <div className="restaurant-status">
-                {venue.status === "LIVE" ? (
-                  <span className="live-status">
-                    🟢 LIVE
-                  </span>
-                ) : (
-                  <span className="offline-status">
-                    🔴 OFFLINE
-                  </span>
+        {venues === null ? (
+          <div className="empty-state">
+            <p>We couldn&apos;t load venues right now. Please try again soon.</p>
+          </div>
+        ) : venues.length === 0 ? (
+          <div className="empty-state">
+            <p>No venues match your search yet.</p>
+            <Link href="/restaurants" className="button button-small">
+              Clear filters
+            </Link>
+          </div>
+        ) : (
+          <div className="venue-grid">
+            {venues.map((venue) => (
+              <Link
+                key={venue.id}
+                href={`/restaurants/${venue.id}`}
+                className="venue-card"
+              >
+                <div className="venue-card-top">
+                  <span className="venue-type">{venue.type}</span>
+                  {venue.isLive && <span className="live-badge">● LIVE</span>}
+                </div>
+                <h3>{venue.name}</h3>
+                <p className="venue-city">{venue.city}</p>
+                {venue.address && (
+                  <p className="venue-address">{venue.address}</p>
                 )}
-              </div>
-
-              <div className="restaurant-actions">
-                {venue.status === "LIVE" ? (
-                  <Link
-                    href={`/livestream?id=${venue.id}`}
-                    className="watch-button"
-                  >
-                    Watch Live
-                  </Link>
-                ) : (
-                  <Link
-                    href={`/restaurant/${venue.id}`}
-                    className="details-button"
-                  >
-                    View Details
-                  </Link>
+                {venue.description && (
+                  <p className="venue-description">{venue.description}</p>
                 )}
-              </div>
-            </div>
-          </article>
-        ))}
-
-        {filteredVenues.length === 0 && (
-          <p className="no-results">
-            No restaurants or pubs found.
-          </p>
+              </Link>
+            ))}
+          </div>
         )}
       </section>
     </main>
