@@ -41,7 +41,7 @@ export default function Home() {
           <a href="/login" className="login-link">
             Login
           </a>
-          <a href="/register" className="button button-small">
+          <a href="/createaccount" className="button button-small">
             Register
           </a>
         </div>
@@ -62,7 +62,7 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-            <a href="/register" className="button">
+            <a href="/createaccount" className="button">
               Start Your Free Trial <span aria-hidden="true">→</span>
             </a>
             <a href="/restaurants" className="button button-outline">
