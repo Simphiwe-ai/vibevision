@@ -1,134 +1,124 @@
-"use client";
-
 import Image from "next/image";
-import Link from "next/link";
-import "./globals.css";
+
+const locations = [
+  "Johannesburg",
+  "Soweto",
+  "Sandton",
+  "Pretoria",
+  "Durban",
+  "Cape Town",
+  "Bloemfontein",
+  "Polokwane",
+  "East London",
+  "Gqeberha",
+];
 
 export default function Home() {
   return (
-    <div className="vibevision">
-      {/* ================= NAVBAR ================= */}
+    <main className="vibevision-page">
       <header className="navbar">
-        {/* Logo */}
-        <Link href="/" className="logo-button">
+        <a href="/" className="brand" aria-label="VibeVision Home">
           <Image
             src="/vibevisionlogo.jpg"
-            alt="VibeVision"
-            width={120}
-            height={40}
-            className="logo"
+            alt="VibeVision logo"
+            width={58}
+            height={58}
+            priority
+            className="brand-logo"
           />
-        </Link>
+          <span>VibeVision</span>
+        </a>
 
-        {/* Navigation */}
-        <nav className="nav-links">
-          <Link href="/" className="nav-link active">Home</Link>
-          <a href="#explore">Explore</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#about">About Us</a>
-          <a href="#contact">Contact</a>
+        <nav className="nav-links" aria-label="Main navigation">
+          <a href="/">Home</a>
+          <a href="/restaurants">Restaurants &amp; Pubs</a>
+          <a href="/search">Search</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
         </nav>
 
-        {/* Authentication */}
         <div className="nav-actions">
-          <Link href="/login" className="login-button">Log In</Link>
-          <Link href="/register" className="signup-button">Sign Up</Link>
+          <a href="/login" className="login-link">
+            Login
+          </a>
+          <a href="/register" className="button button-small">
+            Register
+          </a>
         </div>
       </header>
 
-      {/* ================= HERO SECTION ================= */}
-      <main>
-        {/* Hero */}
-        <section className="hero">
-          <div className="hero-content">
-            <h1>
-              Live Moments.<br />Real <span>Vibes.</span>
-            </h1>
-            <p className="hero-description">
-              VibeVision lets restaurants and pubs live stream their vibe in real-time.
-              Discover places, watch live, and feel the atmosphere from anywhere.
-            </p>
-            {/* Mini Features */}
-            <div className="mini-features">
-              <div className="mini-feature">
-                <div className="feature-icon">📡</div>
-                <h3>Go Live</h3>
-                <p>Stream your restaurant or pub in stunning live quality.</p>
-              </div>
-              <div className="mini-feature">
-                <div className="feature-icon">🧭</div>
-                <h3>Discover</h3>
-                <p>Explore live venues near you and around the world.</p>
-              </div>
-              <div className="mini-feature">
-                <div className="feature-icon">💬</div>
-                <h3>Engage</h3>
-                <p>Chat with viewers and build your community.</p>
-              </div>
-            </div>
+      <section className="hero">
+        <div className="hero-content">
+          <p className="eyebrow">YOUR CITY. YOUR PEOPLE. YOUR VIBE.</p>
+
+          <h1>
+            Welcome to <span>VibeVision</span>
+          </h1>
+
+          <p className="hero-description">
+            Feel the vibe. Experience restaurants, pubs and nightlife through
+            live streaming. Discover your next favourite spot before you even
+            leave home.
+          </p>
+
+          <div className="hero-actions">
+            <a href="/register" className="button">
+              Start Your Free Trial <span aria-hidden="true">→</span>
+            </a>
+            <a href="/restaurants" className="button button-outline">
+              Explore Restaurants
+            </a>
           </div>
 
-          {/* Trial Card */}
-          <div className="trial-card">
-            <div className="trial-header">
-              <div className="trial-icon">🎁</div>
+          <div className="hero-features">
+            <div className="feature">
+              <span className="feature-icon">◉</span>
               <div>
-                <h2>Start Your <span>7-Day Free Trial</span></h2>
-                <p>Create your account to start streaming or watching live.</p>
+                <strong>Live experiences</strong>
+                <p>Explore the atmosphere in real time</p>
               </div>
             </div>
-            <form className="register-form">
-              <div className="form-row">
-                <input type="text" placeholder="First Name" required />
-                <input type="text" placeholder="Last Name" required />
-              </div>
-              <input type="email" placeholder="Email Address" required />
-              <input type="password" placeholder="Password" required />
-              <select required defaultValue="">
-                <option value="" disabled>I am a...</option>
-                <option value="viewer">Viewer</option>
-                <option value="restaurant">Restaurant Owner</option>
-                <option value="pub">Pub Owner</option>
-              </select>
-              <button type="submit" className="trial-button">
-                Create Account & Start Free Trial
-              </button>
-            </form>
-            <p className="terms">
-              By signing up, you agree to our <Link href="/terms">Terms of Service</Link> and <Link href="/privacy">Privacy Policy</Link>.
-            </p>
-            <div className="trial-divider"></div>
-            <p className="existing-account">
-              Already have an account? <Link href="/login">Log in</Link>
-            </p>
-          </div>
-        </section>
-      </main>
 
-      {/* ================= FOOTER ================= */}
-      <footer className="footer" id="contact">
-        <div className="footer-logo">
-          <Link href="/" className="footer-logo-button">
-            <Image src="/vibevisionlogo.jpg" alt="VibeVision" width={100} height={20} />
-          </Link>
-          <p>Feel the vibe. Anywhere.</p>
+            <div className="feature">
+              <span className="feature-icon">⌖</span>
+              <div>
+                <strong>Discover local spots</strong>
+                <p>Find places around your city</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="footer-links">
-          <div>
-            <h4>Platform</h4>
-            <a href="#explore">Explore</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="#pricing">Pricing</a>
-          </div>
-          <div>
-            <h4>Company</h4>
-            <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
-            <Link href="/privacy">Privacy</Link>
-          </div>
+      </section>
+
+      <section className="locations-section">
+        <div className="section-heading">
+          <p className="eyebrow">FIND YOUR NEXT DESTINATION</p>
+          <h2>Explore by location</h2>
+          <p>Choose a city and discover restaurants, pubs and nightlife.</p>
+        </div>
+
+        <div className="location-grid">
+          {locations.map((location) => (
+            <a
+              key={location}
+              href={`/restaurants?location=${encodeURIComponent(location)}`}
+              className="location-button"
+            >
+              {location}
+              <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <footer className="footer">
+        <p>© {new Date().getFullYear()} VibeVision. Feel the vibe.</p>
+        <div>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/login">Sign in</a>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }
