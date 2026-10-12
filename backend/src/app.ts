@@ -25,6 +25,25 @@ type AuthRequest = Request & {
   user?: AuthUser;
 };
 
+const TRIAL_DAYS = 31;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getTrialStatus(user: {
+  trialEndsAt: Date | null;
+  createdAt: Date;
+}) {
+  const endsAt =
+    user.trialEndsAt ??
+    new Date(user.createdAt.getTime() + TRIAL_DAYS * DAY_MS);
+  const msLeft = endsAt.getTime() - Date.now();
+
+  return {
+    endsAt,
+    active: msLeft > 0,
+    daysLeft: Math.max(0, Math.ceil(msLeft / DAY_MS)),
+  };
+}
+
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
 
@@ -77,6 +96,48 @@ function requireAdmin(
   next();
 }
 
+// Use after authenticateToken on routes that need an active trial.
+async function requireActiveTrial(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const requester = (req as AuthRequest).user;
+
+  if (!requester) {
+    return res.status(401).json({ error: "Access denied." });
+  }
+
+  if (requester.accountType === "admin") {
+    return next();
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: requester.userId },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Account not found." });
+    }
+
+    if (!getTrialStatus(user).active) {
+      return res.status(403).json({
+        error: "Your 31-day free trial has ended.",
+        code: "TRIAL_EXPIRED",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Trial check failed:", error);
+
+    return res.status(500).json({
+      error: "Trial check failed.",
+    });
+  }
+}
+
 app.get("/", (_req: Request, res: Response) => {
   res.json({ message: "VibeVision API is running!" });
 });
@@ -125,6 +186,7 @@ app.post("/users", async (req: Request, res: Response) => {
         email: normalizedEmail,
         passwordHash,
         accountType: "viewer",
+        trialEndsAt: new Date(Date.now() + TRIAL_DAYS * DAY_MS),
       },
       select: {
         id: true,
@@ -132,12 +194,13 @@ app.post("/users", async (req: Request, res: Response) => {
         email: true,
         phone: true,
         accountType: true,
+        trialEndsAt: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return res.status(201).json(user);
+    return res.status(201).json({ ...user, trial: getTrialStatus(user) });
   } catch (error) {
     console.error("Registration failed:", error);
 
@@ -191,6 +254,7 @@ app.post("/auth/login", async (req: Request, res: Response) => {
         fullName: user.fullName,
         email: user.email,
         accountType: user.accountType,
+        trial: getTrialStatus(user),
       },
     });
   } catch (error) {
@@ -201,6 +265,40 @@ app.post("/auth/login", async (req: Request, res: Response) => {
     });
   }
 });
+
+app.get(
+  "/auth/me",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    const requester = (req as AuthRequest).user;
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: requester!.userId },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          accountType: true,
+          trialEndsAt: true,
+          createdAt: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      return res.json({ ...user, trial: getTrialStatus(user) });
+    } catch (error) {
+      console.error("Fetching current user failed:", error);
+
+      return res.status(500).json({
+        error: "Failed to fetch user.",
+      });
+    }
+  },
+);
 
 app.get(
   "/users",
@@ -474,4 +572,5 @@ app.delete(
 app.use("/venues", venuesRouter);
 app.use("/admin/venues", authenticateToken, requireAdmin, adminVenuesRouter);
 
+export { authenticateToken, requireActiveTrial };
 export default app;

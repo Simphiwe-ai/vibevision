@@ -161,7 +161,7 @@ router.get("/", async (_req: Request, res: Response) => {
 });
 
 router.get("/:id", async (req: Request, res: Response) => {
-  const id = parseId(req.params.id);
+  const id = parseId(String(req.params.id));
 
   if (id === null) {
     return res.status(400).json({ error: "Invalid venue ID." });
@@ -210,7 +210,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 router.put("/:id", async (req: Request, res: Response) => {
-  const id = parseId(req.params.id);
+  const id = parseId(String(req.params.id));
 
   if (id === null) {
     return res.status(400).json({ error: "Invalid venue ID." });
@@ -245,7 +245,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 router.delete("/:id", async (req: Request, res: Response) => {
-  const id = parseId(req.params.id);
+  const id = parseId(String(req.params.id));
 
   if (id === null) {
     return res.status(400).json({ error: "Invalid venue ID." });

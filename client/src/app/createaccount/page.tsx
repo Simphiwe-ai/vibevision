@@ -1,43 +1,41 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { signUp } from "@/lib/auth";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    accountType: "viewer",
     terms: false,
   });
 
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleChange(
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) {
-    const { name, value, type } = event.target;
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = event.target;
 
     setFormData({
       ...formData,
-      [name]:
-        type === "checkbox"
-          ? (event.target as HTMLInputElement).checked
-          : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setMessage("");
 
     if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.phone ||
+      !formData.fullName.trim() ||
+      !formData.email.trim() ||
       !formData.password ||
       !formData.confirmPassword
     ) {
@@ -60,20 +58,39 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage("Registration form completed successfully!");
+    setSubmitting(true);
 
-    console.log("Registration data:", formData);
+    const result = await signUp({
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      password: formData.password,
+    });
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setMessage(result.error);
+      return;
+    }
+
+    setMessage(
+      "Welcome to VibeVision! Your " +
+        result.data.user.trial.daysLeft +
+        "-day free trial has started.",
+    );
+
+    setTimeout(() => router.push("/restaurants"), 1500);
   }
 
   return (
     <main className="register-page">
       <div className="register-container">
         <div className="register-header">
-          <h1>Create Your VibeVision Account</h1>
+          <h1>Start Your 31-Day Free Trial</h1>
 
           <p>
             Join VibeVision and discover live streams from restaurants and
-            pubs.
+            pubs. No payment needed to start.
           </p>
         </div>
 
@@ -105,7 +122,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
+            <label htmlFor="phone">Phone Number (optional)</label>
 
             <input
               id="phone"
@@ -115,20 +132,6 @@ export default function RegisterPage() {
               value={formData.phone}
               onChange={handleChange}
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="accountType">Account Type</label>
-
-            <select
-              id="accountType"
-              name="accountType"
-              value={formData.accountType}
-              onChange={handleChange}
-            >
-              <option value="viewer">Viewer</option>
-              <option value="owner">Restaurant / Pub Owner</option>
-            </select>
           </div>
 
           <div className="form-group">
@@ -173,19 +176,18 @@ export default function RegisterPage() {
             </label>
           </div>
 
-          {message && (
-            <div className="register-message">
-              {message}
-            </div>
-          )}
+          {message && <div className="register-message">{message}</div>}
 
-          <button type="submit" className="register-button">
-            Create Account
+          <button
+            type="submit"
+            className="register-button"
+            disabled={submitting}
+          >
+            {submitting ? "Creating account..." : "Start Free Trial"}
           </button>
 
           <p className="login-link">
-            Already have an account?{" "}
-            <a href="/login">Login here</a>
+            Already have an account? <a href="/login">Login here</a>
           </p>
         </form>
       </div>

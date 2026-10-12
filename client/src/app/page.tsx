@@ -25,7 +25,7 @@ export default function Home() {
             through live streaming.
           </p>
           <div className="hero-actions">
-            <a href="/register" className="button">
+            <a href="/createaccount" className="button">
               Start Your Free Trial
             </a>
             <a href="/login" className="button button-outline">

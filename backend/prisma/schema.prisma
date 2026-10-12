@@ -7,14 +7,15 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   fullName     String
-  email        String   @unique
+  email        String    @unique
   phone        String?
   passwordHash String
-  accountType  String   @default("viewer")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  accountType  String    @default("viewer")
+  trialEndsAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   posts        Post[]
 }

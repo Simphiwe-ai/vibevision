@@ -25,7 +25,8 @@ const prismaMock = vi.hoisted(() => ({
 
 vi.mock("../db", () => ({ prisma: prismaMock }));
 
-import app from "../app";
+import app, { authenticateToken, requireActiveTrial } from "../app";
+import express from "express";
 
 const SECRET = "test-secret";
 
@@ -271,6 +272,8 @@ describe("POST /auth/login", () => {
     email: "sam@example.com",
     passwordHash,
     accountType: "viewer",
+    trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000),
   };
 
   it("returns a signed token and the user, without the hash, for valid credentials", async () => {
@@ -285,6 +288,11 @@ describe("POST /auth/login", () => {
       fullName: "Sam",
       email: "sam@example.com",
       accountType: "viewer",
+      trial: {
+        endsAt: dbUser.trialEndsAt.toISOString(),
+        active: true,
+        daysLeft: 10,
+      },
     });
     expect(JSON.stringify(res.body)).not.toContain(passwordHash);
 
@@ -725,5 +733,195 @@ describe("DELETE /posts/:id", () => {
       .delete("/posts/5")
       .set("Authorization", asViewer(1));
     expect(res.status).toBe(500);
+  });
+});
+
+describe("free trial (31 days)", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const daysFromNow = (days: number) => new Date(Date.now() + days * DAY);
+
+  describe("POST /users", () => {
+    it("starts a 31-day trial for new signups", async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.user.create.mockImplementation(async ({ data }) => ({
+        id: 1,
+        fullName: data.fullName,
+        email: data.email,
+        phone: null,
+        accountType: data.accountType,
+        trialEndsAt: data.trialEndsAt,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      const res = await request(app).post("/users").send({
+        fullName: "Trial User",
+        email: "trial@example.com",
+        password: "password123",
+      });
+
+      expect(res.status).toBe(201);
+
+      const { data } = prismaMock.user.create.mock.calls[0][0];
+      const msAhead = data.trialEndsAt.getTime() - Date.now();
+      expect(Math.round(msAhead / DAY)).toBe(31);
+
+      expect(res.body.trial).toMatchObject({ active: true, daysLeft: 31 });
+      expect(res.body).not.toHaveProperty("passwordHash");
+    });
+  });
+
+  describe("GET /auth/me", () => {
+    it("returns 401 without a token", async () => {
+      const res = await request(app).get("/auth/me");
+
+      expect(res.status).toBe(401);
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("returns the current user with an active trial", async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 5,
+        fullName: "Ann",
+        email: "ann@example.com",
+        accountType: "viewer",
+        trialEndsAt: daysFromNow(12),
+        createdAt: daysFromNow(-19),
+      });
+
+      const res = await request(app)
+        .get("/auth/me")
+        .set("Authorization", asViewer(5));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        id: 5,
+        email: "ann@example.com",
+        trial: { active: true, daysLeft: 12 },
+      });
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 5 } }),
+      );
+    });
+
+    it("shows an expired trial with 0 days left", async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 5,
+        fullName: "Ann",
+        email: "ann@example.com",
+        accountType: "viewer",
+        trialEndsAt: daysFromNow(-2),
+        createdAt: daysFromNow(-33),
+      });
+
+      const res = await request(app)
+        .get("/auth/me")
+        .set("Authorization", asViewer(5));
+
+      expect(res.status).toBe(200);
+      expect(res.body.trial).toMatchObject({ active: false, daysLeft: 0 });
+    });
+
+    it("counts 31 days from createdAt when trialEndsAt is null", async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 5,
+        fullName: "Ann",
+        email: "ann@example.com",
+        accountType: "viewer",
+        trialEndsAt: null,
+        createdAt: daysFromNow(-5),
+      });
+
+      const res = await request(app)
+        .get("/auth/me")
+        .set("Authorization", asViewer(5));
+
+      expect(res.body.trial).toMatchObject({ active: true, daysLeft: 26 });
+    });
+
+    it("returns 404 when the account no longer exists", async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      const res = await request(app)
+        .get("/auth/me")
+        .set("Authorization", asViewer(5));
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("requireActiveTrial middleware", () => {
+    const guarded = express();
+    guarded.get("/stream", authenticateToken, requireActiveTrial, (_req, res) => {
+      res.json({ ok: true });
+    });
+
+    it("returns 401 without a token", async () => {
+      const res = await request(guarded).get("/stream");
+
+      expect(res.status).toBe(401);
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("lets a viewer with an active trial through", async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        accountType: "viewer",
+        trialEndsAt: daysFromNow(3),
+        createdAt: daysFromNow(-28),
+      });
+
+      const res = await request(guarded)
+        .get("/stream")
+        .set("Authorization", asViewer(1));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ ok: true });
+    });
+
+    it("blocks a viewer whose trial has ended", async () => {
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        accountType: "viewer",
+        trialEndsAt: daysFromNow(-1),
+        createdAt: daysFromNow(-32),
+      });
+
+      const res = await request(guarded)
+        .get("/stream")
+        .set("Authorization", asViewer(1));
+
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe("TRIAL_EXPIRED");
+    });
+
+    it("lets admins through without checking the trial", async () => {
+      const res = await request(guarded)
+        .get("/stream")
+        .set("Authorization", asAdmin());
+
+      expect(res.status).toBe(200);
+      expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it("returns 401 when the account no longer exists", async () => {
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      const res = await request(guarded)
+        .get("/stream")
+        .set("Authorization", asViewer(1));
+
+      expect(res.status).toBe(401);
+    });
+
+    it("returns 500 when the database fails", async () => {
+      prismaMock.user.findUnique.mockRejectedValue(new Error("db down"));
+
+      const res = await request(guarded)
+        .get("/stream")
+        .set("Authorization", asViewer(1));
+
+      expect(res.status).toBe(500);
+    });
   });
 });
