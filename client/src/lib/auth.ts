@@ -106,3 +106,60 @@ export async function signUp(input: {
 
   return logIn(input.email, input.password);
 }
+
+export type StreamResult =
+  | { status: "ok"; live: boolean; streamUrl: string | null }
+  | { status: "login-required" }
+  | { status: "trial-expired" }
+  | { status: "error"; error: string };
+
+// Asks the server for a venue's stream link. Only works for logged-in
+// members whose free trial is still active.
+export async function fetchStream(
+  venueId: string | number,
+): Promise<StreamResult> {
+  const token = getToken();
+
+  if (!token) {
+    return { status: "login-required" };
+  }
+
+  try {
+    const response = await fetch(API_URL + "/venues/" + venueId + "/stream", {
+      headers: { Authorization: "Bearer " + token },
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    // A missing, invalid or expired login token (they last 1 hour).
+    if (
+      response.status === 401 ||
+      (response.status === 403 && data.code !== "TRIAL_EXPIRED")
+    ) {
+      clearSession();
+      return { status: "login-required" };
+    }
+
+    if (response.status === 403) {
+      return { status: "trial-expired" };
+    }
+
+    if (!response.ok) {
+      return {
+        status: "error",
+        error: data.error ?? "We couldn't load the stream. Please try again.",
+      };
+    }
+
+    return {
+      status: "ok",
+      live: Boolean(data.live),
+      streamUrl: data.streamUrl ?? null,
+    };
+  } catch {
+    return {
+      status: "error",
+      error: "Could not reach the server. Please try again in a moment.",
+    };
+  }
+}

@@ -14,6 +14,7 @@ import bcrypt from "bcryptjs";
 
 const prismaMock = vi.hoisted(() => ({
   user: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+  venue: { findUnique: vi.fn() },
   post: {
     create: vi.fn(),
     findMany: vi.fn(),
@@ -923,5 +924,138 @@ describe("free trial (31 days)", () => {
 
       expect(res.status).toBe(500);
     });
+  });
+});
+
+describe("GET /venues/:id/stream", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const daysFromNow = (days: number) => new Date(Date.now() + days * DAY);
+
+  const activeViewer = {
+    id: 1,
+    accountType: "viewer",
+    trialEndsAt: daysFromNow(10),
+    createdAt: daysFromNow(-21),
+  };
+  const expiredViewer = {
+    id: 1,
+    accountType: "viewer",
+    trialEndsAt: daysFromNow(-1),
+    createdAt: daysFromNow(-32),
+  };
+  const streamUrl = "https://streams.example.com/vibe-room";
+  const liveVenue = { id: 3, isLive: true, streamUrl };
+
+  it("returns 401 without a token", async () => {
+    const res = await request(app).get("/venues/3/stream");
+
+    expect(res.status).toBe(401);
+    expect(prismaMock.venue.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("blocks a viewer whose trial has ended and never touches the venue", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(expiredViewer);
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("TRIAL_EXPIRED");
+    expect(JSON.stringify(res.body)).not.toContain(streamUrl);
+    expect(prismaMock.venue.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns the stream link to a viewer with an active trial", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+    prismaMock.venue.findUnique.mockResolvedValue(liveVenue);
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ live: true, streamUrl });
+    expect(prismaMock.venue.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 3 } }),
+    );
+  });
+
+  it("hides the link when the venue is not live", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+    prismaMock.venue.findUnique.mockResolvedValue({
+      ...liveVenue,
+      isLive: false,
+    });
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ live: false, streamUrl: null });
+    expect(JSON.stringify(res.body)).not.toContain(streamUrl);
+  });
+
+  it("reports not live when the venue has no stream link", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+    prismaMock.venue.findUnique.mockResolvedValue({
+      ...liveVenue,
+      streamUrl: null,
+    });
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.body).toEqual({ live: false, streamUrl: null });
+  });
+
+  it("returns 404 when the venue does not exist", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+    prismaMock.venue.findUnique.mockResolvedValue(null);
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.status).toBe(404);
+  });
+
+  it.each(["abc", "0", "-1", "1.5"])(
+    "returns 400 for the invalid venue id %s",
+    async (id) => {
+      prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+
+      const res = await request(app)
+        .get("/venues/" + id + "/stream")
+        .set("Authorization", asViewer(1));
+
+      expect(res.status).toBe(400);
+      expect(prismaMock.venue.findUnique).not.toHaveBeenCalled();
+    },
+  );
+
+  it("lets admins through without a trial check", async () => {
+    prismaMock.venue.findUnique.mockResolvedValue(liveVenue);
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asAdmin());
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ live: true, streamUrl });
+    expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 when the venue lookup fails", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(activeViewer);
+    prismaMock.venue.findUnique.mockRejectedValue(new Error("db down"));
+
+    const res = await request(app)
+      .get("/venues/3/stream")
+      .set("Authorization", asViewer(1));
+
+    expect(res.status).toBe(500);
   });
 });

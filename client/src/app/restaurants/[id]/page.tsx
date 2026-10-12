@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "../../../components/SiteHeader";
+import StreamPanel from "../../../components/StreamPanel";
 import { fetchVenue } from "../../../lib/api";
 
 export default async function VenuePage({
@@ -50,21 +51,7 @@ export default async function VenuePage({
               <p className="venue-description">{result.description}</p>
             )}
 
-            <div className="stream-panel">
-              <h2>Live stream</h2>
-              <p>
-                Live streams are for members. Sign in or start your free trial
-                to watch when this venue goes live.
-              </p>
-              <div className="hero-actions">
-                <Link href="/login" className="button button-outline button-small">
-                  Login
-                </Link>
-                <Link href="/createaccount" className="button button-small">
-                  Start free trial
-                </Link>
-              </div>
-            </div>
+            <StreamPanel venueId={id} />
           </>
         )}
       </section>

@@ -569,6 +569,44 @@ app.delete(
   },
 );
 
+// Live stream link: members only, and only while their free trial is active.
+app.get(
+  "/venues/:id/stream",
+  authenticateToken,
+  requireActiveTrial,
+  async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid venue ID." });
+    }
+
+    try {
+      const venue = await prisma.venue.findUnique({
+        where: { id },
+        select: { id: true, isLive: true, streamUrl: true },
+      });
+
+      if (!venue) {
+        return res.status(404).json({ error: "Venue not found." });
+      }
+
+      const live = venue.isLive && Boolean(venue.streamUrl);
+
+      return res.json({
+        live,
+        streamUrl: live ? venue.streamUrl : null,
+      });
+    } catch (error) {
+      console.error("Fetching stream failed:", error);
+
+      return res.status(500).json({
+        error: "Failed to fetch stream.",
+      });
+    }
+  },
+);
+
 app.use("/venues", venuesRouter);
 app.use("/admin/venues", authenticateToken, requireAdmin, adminVenuesRouter);
 
