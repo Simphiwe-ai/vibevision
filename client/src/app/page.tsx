@@ -1,20 +1,22 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { asset } from "@/lib/paths";
 
 export default function Home() {
   return (
     <main className="vibevision-page">
       <header className="navbar">
-        <a href="/" className="brand">
+        <Link href="/" className="brand">
           <Image
-            src="/vibevisionlogo.jpg"
+            src={asset("/vibevisionlogo.jpg")}
             alt="VibeVision logo"
             width={58}
             height={58}
           />
           <span>VibeVision</span>
-        </a>
+        </Link>
       </header>
 
       <section className="hero">
@@ -25,12 +27,12 @@ export default function Home() {
             through live streaming.
           </p>
           <div className="hero-actions">
-            <a href="/createaccount" className="button">
+            <Link href="/createaccount" className="button">
               Start Your Free Trial
-            </a>
-            <a href="/login" className="button button-outline">
+            </Link>
+            <Link href="/login" className="button button-outline">
               Login
-            </a>
+            </Link>
           </div>
         </div>
       </section>

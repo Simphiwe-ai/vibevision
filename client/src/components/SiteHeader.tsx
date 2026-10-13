@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { asset } from "@/lib/paths";
 
 export default function SiteHeader() {
   return (
     <header className="navbar">
       <Link href="/" className="brand" aria-label="VibeVision Home">
         <Image
-          src="/vibevisionlogo.jpg"
+          src={asset("/vibevisionlogo.jpg")}
           alt="VibeVision logo"
           width={58}
           height={58}

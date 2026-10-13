@@ -42,7 +42,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: url("/background.jpg");
+  background-image: var(--bg-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -634,7 +634,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background-image: url("/background.jpg");
+  background-image: var(--bg-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

@@ -1,13 +1,20 @@
-import Link from "next/link";
-import SiteHeader from "../../components/SiteHeader";
-import { CITIES, VENUE_TYPES, fetchVenues } from "../../lib/api";
+"use client";
 
-type RawParams = { [key: string]: string | string[] | undefined };
+import Link from "next/link";
+import { FormEvent, Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import SiteHeader from "../../components/SiteHeader";
+import {
+  CITIES,
+  VENUE_TYPES,
+  fetchVenues,
+  type Venue,
+} from "../../lib/api";
+
 type Filters = { location?: string; type?: string; q?: string };
 
-function first(value: string | string[] | undefined): string | undefined {
-  const text = Array.isArray(value) ? value[0] : value;
-  return text && text.trim() ? text.trim() : undefined;
+function clean(value: string | null): string | undefined {
+  return value && value.trim() ? value.trim() : undefined;
 }
 
 function href(filters: Filters) {
@@ -19,23 +26,47 @@ function href(filters: Filters) {
   return query ? `/restaurants?${query}` : "/restaurants";
 }
 
-export default async function RestaurantsPage({
-  searchParams,
-}: {
-  searchParams: Promise<RawParams>;
-}) {
-  const raw = await searchParams;
-  const filters: Filters = {
-    location: first(raw.location),
-    type: first(raw.type),
-    q: first(raw.q),
-  };
+function RestaurantsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const venues = await fetchVenues({
-    city: filters.location,
-    type: filters.type,
-    q: filters.q,
-  });
+  const location = clean(searchParams.get("location"));
+  const type = clean(searchParams.get("type"));
+  const q = clean(searchParams.get("q"));
+  const filters: Filters = { location, type, q };
+  const key = [location, type, q].join("|");
+
+  const [result, setResult] = useState<{
+    key: string;
+    venues: Venue[] | null;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchVenues({ city: location, type, q }).then((venues) => {
+      if (!cancelled) setResult({ key, venues });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [key, location, type, q]);
+
+  const loading = result === null || result.key !== key;
+  const venues = result ? result.venues : null;
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const text = new FormData(event.currentTarget).get("q");
+
+    router.push(
+      href({
+        ...filters,
+        q: typeof text === "string" && text.trim() ? text.trim() : undefined,
+      }),
+    );
+  }
 
   return (
     <main className="vibevision-page">
@@ -48,17 +79,12 @@ export default async function RestaurantsPage({
           <p>Pick a city, filter by type, or search by name.</p>
         </div>
 
-        <form action="/restaurants" className="search-form">
-          {filters.location && (
-            <input type="hidden" name="location" value={filters.location} />
-          )}
-          {filters.type && (
-            <input type="hidden" name="type" value={filters.type} />
-          )}
+        <form className="search-form" onSubmit={handleSearch}>
           <input
+            key={q ?? ""}
             type="search"
             name="q"
-            defaultValue={filters.q ?? ""}
+            defaultValue={q ?? ""}
             placeholder="Search venues..."
             aria-label="Search venues"
           />
@@ -70,7 +96,7 @@ export default async function RestaurantsPage({
         <div className="filter-row">
           <Link
             href={href({ ...filters, location: undefined })}
-            className={`chip${!filters.location ? " chip-active" : ""}`}
+            className={`chip${!location ? " chip-active" : ""}`}
           >
             All cities
           </Link>
@@ -79,7 +105,7 @@ export default async function RestaurantsPage({
               key={city}
               href={href({ ...filters, location: city })}
               className={`chip${
-                filters.location?.toLowerCase() === city.toLowerCase()
+                location?.toLowerCase() === city.toLowerCase()
                   ? " chip-active"
                   : ""
               }`}
@@ -92,24 +118,26 @@ export default async function RestaurantsPage({
         <div className="filter-row">
           <Link
             href={href({ ...filters, type: undefined })}
-            className={`chip${!filters.type ? " chip-active" : ""}`}
+            className={`chip${!type ? " chip-active" : ""}`}
           >
             All types
           </Link>
-          {VENUE_TYPES.map((type) => (
+          {VENUE_TYPES.map((option) => (
             <Link
-              key={type.value}
-              href={href({ ...filters, type: type.value })}
-              className={`chip${
-                filters.type === type.value ? " chip-active" : ""
-              }`}
+              key={option.value}
+              href={href({ ...filters, type: option.value })}
+              className={`chip${type === option.value ? " chip-active" : ""}`}
             >
-              {type.label}
+              {option.label}
             </Link>
           ))}
         </div>
 
-        {venues === null ? (
+        {loading ? (
+          <div className="empty-state">
+            <p>Loading venues...</p>
+          </div>
+        ) : venues === null ? (
           <div className="empty-state">
             <p>We couldn&apos;t load venues right now. Please try again soon.</p>
           </div>
@@ -125,7 +153,7 @@ export default async function RestaurantsPage({
             {venues.map((venue) => (
               <Link
                 key={venue.id}
-                href={`/restaurants/${venue.id}`}
+                href={`/venue?id=${venue.id}`}
                 className="venue-card"
               >
                 <div className="venue-card-top">
@@ -146,5 +174,19 @@ export default async function RestaurantsPage({
         )}
       </section>
     </main>
+  );
+}
+
+export default function RestaurantsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="vibevision-page">
+          <SiteHeader />
+        </main>
+      }
+    >
+      <RestaurantsContent />
+    </Suspense>
   );
 }

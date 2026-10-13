@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logIn } from "@/lib/auth";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function LoginPage() {
           </button>
 
           <p className="login-link">
-            New here? <a href="/createaccount">Start your free trial</a>
+            New here? <Link href="/createaccount">Start your free trial</Link>
           </p>
         </form>
       </div>

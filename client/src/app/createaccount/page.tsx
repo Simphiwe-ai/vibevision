@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -187,7 +188,7 @@ export default function RegisterPage() {
           </button>
 
           <p className="login-link">
-            Already have an account? <a href="/login">Login here</a>
+            Already have an account? <Link href="/login">Login here</Link>
           </p>
         </form>
       </div>

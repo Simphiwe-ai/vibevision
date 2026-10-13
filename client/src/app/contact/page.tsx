@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Page() {
   return (
     <main className="vibevision-page">
@@ -9,9 +11,9 @@ export default function Page() {
           </h1>
           <p className="hero-description">This page is under construction.</p>
           <div className="hero-actions">
-            <a href="/" className="button">
+            <Link href="/" className="button">
               Back to home
-            </a>
+            </Link>
           </div>
         </div>
       </section>
