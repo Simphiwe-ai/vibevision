@@ -786,3 +786,45 @@ a {
     font-size: 1.5rem;
   }
 }
+
+/* ===== Password show/hide toggle ===== */
+.password-field {
+  position: relative;
+}
+
+.form-group .password-field input {
+  padding-right: 48px;
+}
+
+/* Hide Edge's built-in reveal icon so there aren't two eyes */
+.password-field input::-ms-reveal,
+.password-field input::-ms-clear {
+  display: none;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.password-toggle:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}

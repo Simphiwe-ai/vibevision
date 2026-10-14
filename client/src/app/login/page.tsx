@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logIn } from "@/lib/auth";
+import PasswordInput from "@/components/PasswordInput";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -76,10 +77,9 @@ export default function LoginPage() {
           <div className="form-group">
             <label htmlFor="password">Password</label>
 
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="Enter your password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth";
+import PasswordInput from "@/components/PasswordInput";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -138,10 +139,9 @@ export default function RegisterPage() {
           <div className="form-group">
             <label htmlFor="password">Password</label>
 
-            <input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="Create a password"
               value={formData.password}
               onChange={handleChange}
@@ -153,10 +153,9 @@ export default function RegisterPage() {
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
 
-            <input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
               placeholder="Confirm your password"
               value={formData.confirmPassword}
               onChange={handleChange}
