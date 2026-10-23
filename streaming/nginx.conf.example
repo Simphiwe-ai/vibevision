@@ -1,0 +1,44 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+include /etc/nginx/modules-enabled/*.conf;
+
+events { worker_connections 1024; }
+
+rtmp {
+    server {
+        listen 1935;
+        chunk_size 4096;
+
+        application live {
+            live on;
+            record off;
+
+            # Add these back once the basic test works:
+            on_publish      http://host.docker.internal:4000/api/rtmp/on-publish?secret=CHANGE_ME;
+            on_publish_done http://host.docker.internal:4000/api/rtmp/on-done?secret=CHANGE_ME;
+
+            hls on;
+            hls_path /var/www/hls;
+            hls_fragment 3s;
+            hls_playlist_length 12s;
+            hls_cleanup on;
+        }
+    }
+}
+
+http {
+    server {
+        listen 80;
+
+        location /hls {
+            types {
+                application/vnd.apple.mpegurl m3u8;
+                video/mp2t ts;
+            }
+            root /var/www;
+            add_header Cache-Control no-cache;
+            add_header Access-Control-Allow-Origin *;
+        }
+    }
+}

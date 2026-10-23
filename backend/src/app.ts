@@ -1,3 +1,4 @@
+import rtmpRouter from "./rtmp";
 import express, {
   Request,
   Response,
@@ -608,7 +609,23 @@ app.get(
 );
 
 app.use("/venues", venuesRouter);
+app.use("/api/rtmp", rtmpRouter);
 app.use("/admin/venues", authenticateToken, requireAdmin, adminVenuesRouter);
 
 export { authenticateToken, requireActiveTrial };
+// nginx-rtmp sends form-encoded POSTs, not JSON
+const formBody = express.urlencoded({ extended: false });
+
+app.post("/api/rtmp/on-publish", formBody, (req, res) => {
+  const streamKey = req.body?.name;          // nginx puts the key in "name"
+
+  if (streamKey && streamKey === process.env.TEST_STREAM_KEY) {
+    return res.sendStatus(200);              // 2xx = allow
+  }
+  return res.sendStatus(403);                // anything else = reject
+});
+
+app.post("/api/rtmp/on-done", formBody, (_req, res) => {
+  res.sendStatus(200);
+});
 export default app;

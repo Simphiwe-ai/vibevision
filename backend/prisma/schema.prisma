@@ -17,7 +17,7 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  posts        Post[]
+  posts Post[]
 }
 
 model Post {
@@ -28,22 +28,23 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
 }
 
 model Venue {
-  id          Int      @id @default(autoincrement())
-  name        String
-  type        String
-  city        String
-  address     String?
-  description String?
-  imageUrl    String?
-  streamUrl   String?
-  isLive      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String
+  type          String
+  city          String
+  address       String?
+  description   String?
+  imageUrl      String?
+  streamUrl     String?
+  isLive        Boolean  @default(false)
+  streamKeyHash String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([city])
   @@index([type])

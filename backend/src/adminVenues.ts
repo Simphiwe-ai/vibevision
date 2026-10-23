@@ -1,3 +1,4 @@
+import { generateStreamKey, hashStreamKey } from "./streamKey";
 import { Router, Request, Response } from "express";
 import { prisma } from "./db";
 
@@ -148,6 +149,7 @@ function parseVenue(body: unknown, requireAll: boolean): ParseResult {
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const venues = await prisma.venue.findMany({
+      omit: { streamKeyHash: true },
       orderBy: { createdAt: "desc" },
       take: 500,
     });
@@ -168,7 +170,10 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 
   try {
-    const venue = await prisma.venue.findUnique({ where: { id } });
+    const venue = await prisma.venue.findUnique({
+      where: { id },
+      omit: { streamKeyHash: true },
+    });
 
     if (!venue) {
       return res.status(404).json({ error: "Venue not found." });
@@ -193,6 +198,7 @@ router.post("/", async (req: Request, res: Response) => {
 
   try {
     const venue = await prisma.venue.create({
+      omit: { streamKeyHash: true },
       data: {
         name: name as string,
         type: type as string,
@@ -228,6 +234,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
   try {
     const venue = await prisma.venue.update({
+      omit: { streamKeyHash: true },
       where: { id },
       data: parsed.data,
     });
@@ -263,6 +270,67 @@ router.delete("/:id", async (req: Request, res: Response) => {
     console.error("Deleting venue failed:", error);
 
     return res.status(500).json({ error: "Failed to delete venue." });
+  }
+});
+
+
+// Generates (or rotates) a venue's stream key. The real key is returned
+// once and only its hash is stored, so it can never be shown again.
+router.post("/:id/stream-key", async (req: Request, res: Response) => {
+  const id = parseId(String(req.params.id));
+
+  if (id === null) {
+    return res.status(400).json({ error: "Invalid venue ID." });
+  }
+
+  const streamKey = generateStreamKey();
+
+  try {
+    await prisma.venue.update({
+      where: { id },
+      data: { streamKeyHash: hashStreamKey(streamKey) },
+      select: { id: true },
+    });
+
+    return res.json({
+      streamKey,
+      message: "Copy this key now. It will not be shown again.",
+    });
+  } catch (error) {
+    if (isNotFound(error)) {
+      return res.status(404).json({ error: "Venue not found." });
+    }
+
+    console.error("Generating stream key failed:", error);
+
+    return res.status(500).json({ error: "Failed to generate stream key." });
+  }
+});
+
+// Revokes a venue's stream key, so nobody can broadcast for it.
+router.delete("/:id/stream-key", async (req: Request, res: Response) => {
+  const id = parseId(String(req.params.id));
+
+  if (id === null) {
+    return res.status(400).json({ error: "Invalid venue ID." });
+  }
+
+  try {
+    await prisma.venue.update({
+      where: { id },
+      data: { streamKeyHash: null },
+      select: { id: true },
+    });
+
+    return res.json({ message: "Stream key revoked." });
+  } catch (error) {
+    if (isNotFound(error)) {
+      return res.status(404).json({ error: "Venue not found." });
+    }
+
+    console.error("Revoking stream key failed:", error);
+
+    return res.status(500).json({ error: "Failed to revoke stream key." });
   }
 });
 
