@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchStream, StreamResult } from "@/lib/auth";
+import HlsPlayer from "@/components/HlsPlayer";
 
 export default function StreamPanel({ venueId }: { venueId: string }) {
   const [state, setState] = useState<StreamResult | "loading">("loading");
@@ -65,17 +66,23 @@ export default function StreamPanel({ venueId }: { venueId: string }) {
       return <p>This venue isn&apos;t live right now. Check back soon.</p>;
     }
 
+    const isHls = /\.m3u8(\?|$)/i.test(safeUrl);
+
     return (
       <>
         <p>● LIVE NOW. Enjoy the vibe.</p>
-        <a
-          href={safeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="button button-small"
-        >
-          Watch live
-        </a>
+        {isHls ? (
+          <HlsPlayer key={safeUrl} src={safeUrl} />
+        ) : (
+          <a
+            href={safeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="button button-small"
+          >
+            Watch live
+          </a>
+        )}
       </>
     );
   }
