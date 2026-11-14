@@ -6,6 +6,7 @@ const basePath = forPages ? "/vibevision" : "";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  allowedDevOrigins: process.env.DEV_ORIGIN ? [process.env.DEV_ORIGIN] : [],
   output: forPages ? "export" : undefined,
   basePath,
   trailingSlash: forPages,
