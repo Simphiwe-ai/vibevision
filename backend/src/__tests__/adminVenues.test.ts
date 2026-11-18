@@ -131,6 +131,7 @@ describe("GET /admin/venues/:id", () => {
     expect(res.body.streamUrl).toBe("https://example.com/live");
     expect(prismaMock.venue.findUnique).toHaveBeenCalledWith({
       where: { id: 3 },
+      omit: { streamKeyHash: true },
     });
   });
 
@@ -187,6 +188,7 @@ describe("POST /admin/venues", () => {
         streamUrl: "https://youtube.com/watch?v=abc",
         isLive: true,
       },
+      omit: { streamKeyHash: true },
     });
   });
 
@@ -219,6 +221,7 @@ describe("POST /admin/venues", () => {
         description: null,
         streamUrl: null,
       },
+      omit: { streamKeyHash: true },
     });
   });
 
@@ -289,6 +292,7 @@ describe("PUT /admin/venues/:id", () => {
     expect(prismaMock.venue.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { isLive: true },
+      omit: { streamKeyHash: true },
     });
   });
 
@@ -302,6 +306,7 @@ describe("PUT /admin/venues/:id", () => {
     expect(prismaMock.venue.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { name: "New Name", type: "club" },
+      omit: { streamKeyHash: true },
     });
   });
 
@@ -315,6 +320,7 @@ describe("PUT /admin/venues/:id", () => {
     expect(prismaMock.venue.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { streamUrl: null, address: null },
+      omit: { streamKeyHash: true },
     });
   });
 
